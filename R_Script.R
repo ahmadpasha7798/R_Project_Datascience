@@ -1,6 +1,6 @@
 #Reading Data from the file present in the same directory
 data <- read.csv("dataset ICT583 2023.csv")
-head(data)
+#head(data)
 
 
 # Remove rows with missing values
@@ -14,43 +14,6 @@ data$MMSE_class_binary <- as.factor(data$MMSE_class_binary)
 
 # save the cleaned dataset
 write.csv(data, "data.csv", row.names = FALSE)
-# 
-# # Identify outliers using a boxplot
-# boxplot(data$Body_Weight)
-# 
-# # Apply Winsorization to treat outliers
-# # Define the lower and upper percentile values (e.g., 1st and 99th percentiles)
-# lower_percentile <- quantile(data$Body_Weight, 0.01)
-# upper_percentile <- quantile(data$Body_Weight, 0.99)
-# 
-# # Winsorize the outliers
-# data$Body_Weight[data$Body_Weight < lower_percentile] <- lower_percentile
-# data$Body_Weight[data$Body_Weight > upper_percentile] <- upper_percentile
-# 
-# # Identify outliers using a boxplot AGE
-# boxplot(data$Age)
-# 
-# # Apply Winsorization to treat outliers
-# # Define the lower and upper percentile values (e.g., 1st and 99th percentiles)
-# lower_percentile_age <- quantile(data$Age, 0.01)
-# upper_percentile_age <- quantile(data$Age, 0.99)
-# 
-# # Winsorize the outliers
-# data$Age[data$Age < lower_percentile_age] <- lower_percentile_age
-# data$Age[data$Age > upper_percentile_age] <- upper_percentile_age
-# 
-# # Identify outliers using a boxplot Height
-# boxplot(data$Body_Height)
-# 
-# # Apply Winsorization to treat outliers
-# # Define the lower and upper percentile values (e.g., 1st and 99th percentiles)
-# lower_percentile_height <- quantile(data$Body_Height, 0.01)
-# upper_percentile_height <- quantile(data$Body_Height, 0.99)
-# 
-# # Winsorize the outliers
-# data$Body_Height[data$Body_Height < lower_percentile_height] <- lower_percentile_height
-# data$Body_Height[data$Body_Height > upper_percentile_height] <- upper_percentile_height
-
 
 # Function to treat outliers using Winsorization
 treat_outliers <- function(x, threshold = 0.05) {
@@ -71,14 +34,6 @@ data$MNAb_total <- treat_outliers(data$MNAb_total)
 # Write the treated data to a new CSV file
 write.csv(data, "treated_data.csv", row.names = FALSE)
 
-#Scaling
-#data$Age <- scale(data$Age)
-#data$Body_Height <- scale(data$Body_Height)
-#data$Body_Weight <- scale(data$Body_Weight)
-#data$GDS <- scale(data$GDS)
-#data$MNAa_total <- scale(data$MNAa_total)
-#data$MNAb_total <- scale(data$MNAb_total)
-
 #Normalization
 # Function to min-max normalize a vector
 min_max_normalize <- function(x) {
@@ -93,17 +48,18 @@ data$GDS <- min_max_normalize(data$GDS)
 data$MNAa_total <- min_max_normalize(data$MNAa_total)
 data$MNAb_total <- min_max_normalize(data$MNAb_total)
 
-#Transform
-data$Gender <- as.numeric(data$Gender)  # Convert "Gender" to numeric (assuming binary)
+#Transforming
+#data$Education_ID <- as.numeric(data$Education_ID)
+#data$MMSE_class_binary <- as.numeric(data$MMSE_class_binary)
+#data$Gender <- as.numeric(data$Gender)
+#data$Marital_status_ID <- as.numeric(data$Marital_status_ID)
 
-data$Education_ID <- as.numeric(data$Education_ID)  # Convert "Education_ID" to numeric
-
-# Convert "Marital_status_ID" to dummy variables
-marital_dummies <- model.matrix(~ Marital_status_ID - 1, data = data)
-colnames(marital_dummies) <- gsub("Marital_status_ID", "Marital_status", colnames(marital_dummies))
-data <- cbind(data, marital_dummies)
-
-data$MMSE_class_binary <- as.numeric(data$MMSE_class_binary)  # Convert "MMSE_class_binary" to numeric (assuming binary)
+#Scaling
+#data$Gender <- scale(data$Gender)
+#data$Education_ID <- scale(data$Education_ID)
+#data$Financial_status <- scale(data$Financial_status)
+#data$GDS <- scale(data$GDS)
+#data$Marital_status_ID <- scale(data$Marital_status_ID)
 
 
 write.csv(data, "transformed_data.csv", row.names = FALSE)
