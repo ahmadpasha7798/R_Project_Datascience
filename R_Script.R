@@ -71,9 +71,40 @@ data$MNAb_total <- treat_outliers(data$MNAb_total)
 # Write the treated data to a new CSV file
 write.csv(data, "treated_data.csv", row.names = FALSE)
 
-# Following needed for Transforming Dataset
-install.packages("dplyr")
-install.packages("tidyverse")
-library(dplyr)
+#Scaling
+#data$Age <- scale(data$Age)
+#data$Body_Height <- scale(data$Body_Height)
+#data$Body_Weight <- scale(data$Body_Weight)
+#data$GDS <- scale(data$GDS)
+#data$MNAa_total <- scale(data$MNAa_total)
+#data$MNAb_total <- scale(data$MNAb_total)
 
+#Normalization
+# Function to min-max normalize a vector
+min_max_normalize <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+
+# Min-max normalize the numerical attributes
+data$Age <- min_max_normalize(data$Age)
+data$Body_Height <- min_max_normalize(data$Body_Height)
+data$Body_Weight <- min_max_normalize(data$Body_Weight)
+data$GDS <- min_max_normalize(data$GDS)
+data$MNAa_total <- min_max_normalize(data$MNAa_total)
+data$MNAb_total <- min_max_normalize(data$MNAb_total)
+
+#Transform
+data$Gender <- as.numeric(data$Gender)  # Convert "Gender" to numeric (assuming binary)
+
+data$Education_ID <- as.numeric(data$Education_ID)  # Convert "Education_ID" to numeric
+
+# Convert "Marital_status_ID" to dummy variables
+marital_dummies <- model.matrix(~ Marital_status_ID - 1, data = data)
+colnames(marital_dummies) <- gsub("Marital_status_ID", "Marital_status", colnames(marital_dummies))
+data <- cbind(data, marital_dummies)
+
+data$MMSE_class_binary <- as.numeric(data$MMSE_class_binary)  # Convert "MMSE_class_binary" to numeric (assuming binary)
+
+
+write.csv(data, "transformed_data.csv", row.names = FALSE)
 
