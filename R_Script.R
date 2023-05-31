@@ -3,7 +3,7 @@ data <- read.csv("dataset ICT583 2023.csv")
 #head(data)
 
 
-# Remove rows with missing values
+# Remove rows with missing values as they incomplete data cannot be used
 data <- na.omit(data)
 
 # Convert necessary columns to appropriate data types
@@ -15,7 +15,7 @@ data$MMSE_class_binary <- as.factor(data$MMSE_class_binary)
 # save the cleaned dataset
 write.csv(data, "data.csv", row.names = FALSE)
 
-# Function to treat outliers using Winsorization
+# Function to treat outliers using Winsorization so that the outliers does not reduce the model accuracy
 treat_outliers <- function(x, threshold = 0.05) {
   q <- quantile(x, probs = c(threshold, 1 - threshold), na.rm = TRUE)
   x[x < q[1]] <- q[1]
@@ -34,7 +34,7 @@ data$MNAb_total <- treat_outliers(data$MNAb_total)
 # Write the treated data to a new CSV file
 write.csv(data, "treated_data.csv", row.names = FALSE)
 
-#Normalization
+#Normalization: To make the data normal so that one attribute does not dominate other
 # Function to min-max normalize a vector
 min_max_normalize <- function(x) {
   (x - min(x)) / (max(x) - min(x))
@@ -48,19 +48,81 @@ data$GDS <- min_max_normalize(data$GDS)
 data$MNAa_total <- min_max_normalize(data$MNAa_total)
 data$MNAb_total <- min_max_normalize(data$MNAb_total)
 
-#Transforming
-#data$Education_ID <- as.numeric(data$Education_ID)
-#data$MMSE_class_binary <- as.numeric(data$MMSE_class_binary)
-#data$Gender <- as.numeric(data$Gender)
-#data$Marital_status_ID <- as.numeric(data$Marital_status_ID)
-
-#Scaling
-#data$Gender <- scale(data$Gender)
-#data$Education_ID <- scale(data$Education_ID)
-#data$Financial_status <- scale(data$Financial_status)
-#data$GDS <- scale(data$GDS)
-#data$Marital_status_ID <- scale(data$Marital_status_ID)
+#Removing column which is not required for data processing
+data <- data[, -1]
 
 
 write.csv(data, "transformed_data.csv", row.names = FALSE)
+
+#Preliminary Investigation
+
+# Histogram of Age
+#this histogram shows that the number of people around age 70 are greater that the other ages
+hist(data$Age, main = "Histogram of Age", xlab = "Age")
+
+# Histogram of Body_Height
+#shows that the height around 151 cm is most common height in the dataset
+hist(data$Body_Height, main = "Histogram of Body Height", xlab = "Body Height")
+
+# Histogram of Body_Weight
+#weight around 53 kg is highest in numbers in dataset
+hist(data$Body_Weight, main = "Histogram of Body Weight", xlab = "Body Weight")
+
+# Bar plot of Gender
+#One gender is almost double the amount of other
+barplot(table(data$Gender), main = "Bar Plot of Gender", xlab = "Gender", ylab = "Frequency")
+
+# Bar plot of Education_ID
+# Education Id 2 is highest in number and 4 is lowest
+barplot(table(data$Education_ID), main = "Bar Plot of Education ID", xlab = "Education ID", ylab = "Frequency")
+
+# Bar plot of Marital_status_ID
+#Martial status 2 is most common
+barplot(table(data$Marital_status_ID), main = "Bar Plot of Marital Status ID", xlab = "Marital Status ID", ylab = "Frequency")
+
+# Bar plot of MMSE_class_binary
+# MMSE Class Binary is 1 for 1/8th of the dataset
+barplot(table(data$MMSE_class_binary), main = "Bar Plot of MMSE Class Binary", xlab = "MMSE Class Binary", ylab = "Frequency")
+
+##########Applying Models##################
+#Logistic Regression: It is a popular linear model used for binary classification problems. It models the relationship between the predictor variables and the binary response variable using the logistic function, which maps the linear combination of predictors to a probability of belonging to a particular class.
+#Random Forest: It is an ensemble learning method that combines multiple decision trees to make predictions. Random Forest is effective in handling both classification and regression tasks. It creates a collection of decision trees, where each tree is trained on a random subset of the data and features. The final prediction is determined by aggregating the predictions of all the trees.
+
+#installing Package
+#install.packages("caret")
+
+# Load required packages
+#Uncomment above line if error occurs
+library(caret)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Convert MMSE_class_binary to a factor
+data$MMSE_class_binary <- as.factor(data$MMSE_class_binary)
+
+# Split the data into training and testing sets
+trainIndex <- createDataPartition(data$MMSE_class_binary, p = 0.8, list = FALSE)
+trainData <- data[trainIndex, ]
+testData <- data[-trainIndex, ]
+
+# Train and test Logistic Regression
+logisticModel <- train(MMSE_class_binary ~ ., data = trainData, method = "glm", family = "binomial")
+logisticPred <- predict(logisticModel, newdata = testData)
+
+# Train and test Random Forest
+randomForestModel <- train(MMSE_class_binary ~ ., data = trainData, method = "rf")
+randomForestPred <- predict(randomForestModel, newdata = testData)
+
+# Evaluate model performance
+logisticAcc <- confusionMatrix(logisticPred, testData$MMSE_class_binary)$overall["Accuracy"]
+randomForestAcc <- confusionMatrix(randomForestPred, testData$MMSE_class_binary)$overall["Accuracy"]
+
+
+#Compare Performance
+performance <- data.frame(Model = c("Logistic Regression", "Random Forest"),
+                          Accuracy = c(logisticAcc, randomForestAcc))
+
+print(performance)
+
 
