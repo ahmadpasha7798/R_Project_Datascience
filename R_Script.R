@@ -13,7 +13,7 @@ data$Marital_status_ID <- as.factor(data$Marital_status_ID)
 data$MMSE_class_binary <- as.factor(data$MMSE_class_binary)
 
 # save the cleaned dataset
-write.csv(data, "data.csv", row.names = FALSE)
+#write.csv(data, "data.csv", row.names = FALSE)
 
 # Function to treat outliers using Winsorization so that the outliers does not reduce the model accuracy
 treat_outliers <- function(x, threshold = 0.05) {
@@ -32,7 +32,7 @@ data$MNAa_total <- treat_outliers(data$MNAa_total)
 data$MNAb_total <- treat_outliers(data$MNAb_total)
 
 # Write the treated data to a new CSV file
-write.csv(data, "treated_data.csv", row.names = FALSE)
+#write.csv(data, "treated_data.csv", row.names = FALSE)
 
 #Normalization: To make the data normal so that one attribute does not dominate other
 # Function to min-max normalize a vector
@@ -52,7 +52,7 @@ data$MNAb_total <- min_max_normalize(data$MNAb_total)
 data <- data[, -1]
 
 
-write.csv(data, "transformed_data.csv", row.names = FALSE)
+write.csv(data, "cleaned_data.csv", row.names = FALSE)
 
 #Preliminary Investigation
 
@@ -115,14 +115,49 @@ randomForestModel <- train(MMSE_class_binary ~ ., data = trainData, method = "rf
 randomForestPred <- predict(randomForestModel, newdata = testData)
 
 # Evaluate model performance
-logisticAcc <- confusionMatrix(logisticPred, testData$MMSE_class_binary)$overall["Accuracy"]
-randomForestAcc <- confusionMatrix(randomForestPred, testData$MMSE_class_binary)$overall["Accuracy"]
+logistic_metrics <- confusionMatrix(logisticPred, testData$MMSE_class_binary)
+randomforest_metrics <- confusionMatrix(randomForestPred, testData$MMSE_class_binary)
 
+logistic_accuracy <- logistic_metrics$overall["Accuracy"]
+randomforest_accuracy <- randomforest_metrics$overall["Accuracy"]
+
+logistic_precision <- logistic_metrics$byClass["Pos Pred Value"]
+randomforest_precision <- randomforest_metrics$byClass["Pos Pred Value"]
+
+logistic_recall <- logistic_metrics$byClass["Sensitivity"]
+randomforest_recall <- randomforest_metrics$byClass["Sensitivity"]
+
+logistic_f1score <- logistic_metrics$byClass["F1"]
+randomforest_f1score <- randomforest_metrics$byClass["F1"]
+
+logistic_aucroc <- logistic_metrics$byClass["ROC"]
+randomforest_aucroc <- randomforest_metrics$byClass["ROC"]
+
+# Print the performance metrics for comparison
+print("Logistic Regression:")
+print(paste("Accuracy:", logistic_accuracy))
+print(paste("Precision:", logistic_precision))
+print(paste("Recall:", logistic_recall))
+print(paste("F1 Score:", logistic_f1score))
+print(paste("AUC-ROC:", logistic_aucroc))
+
+print("Random Forest:")
+print(paste("Accuracy:", randomforest_accuracy))
+print(paste("Precision:", randomforest_precision))
+print(paste("Recall:", randomforest_recall))
+print(paste("F1 Score:", randomforest_f1score))
+print(paste("AUC-ROC:", randomforest_aucroc))
+
+#logisticAcc <- confusionMatrix(logisticPred, testData$MMSE_class_binary)$overall["Accuracy"]
+#randomForestAcc <- confusionMatrix(randomForestPred, testData$MMSE_class_binary)$overall["Accuracy"]
+
+#print(logisticAcc)
+#print(randomForestAcc)
 
 #Compare Performance
-performance <- data.frame(Model = c("Logistic Regression", "Random Forest"),
-                          Accuracy = c(logisticAcc, randomForestAcc))
+#performance <- data.frame(Model = c("Logistic Regression", "Random Forest"),
+ #                         Accuracy = c(logisticAcc, randomForestAcc))
 
-print(performance)
+#print(performance)
 
 
